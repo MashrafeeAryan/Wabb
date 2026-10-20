@@ -13,3 +13,44 @@
 .auth-buttons{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 #auth-message{min-height:1.5em;font-size:13px;font-weight:bold}
 @media(max-width:700px){.account-bar{align-items:flex-start;flex-direction:column}.auth-buttons{justify-content:stretch}.auth-buttons button{flex:1}}
+
+/* Sketchbook header, drawn to echo the original strawberry calendar reference. */
+.planner-header{isolation:isolate;position:relative;display:block;height:238px;min-height:238px;margin:0 -8px 8px;overflow:hidden}
+.berry-symbols{position:absolute;width:0;height:0;overflow:hidden}
+.header-sprinkles{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.95;z-index:0}
+.doodle-berry{position:absolute;width:90px;height:98px;z-index:2;overflow:visible;filter:drop-shadow(1px 1px 0 #f8c3b6)}
+.berry-one{left:2%;top:64px;width:80px;transform:rotate(15deg)}
+.berry-two{left:11%;top:26px;width:105px;transform:rotate(-13deg)}
+.berry-three{right:15%;top:15px;width:70px;transform:rotate(20deg)}
+.berry-four{right:12%;top:93px;width:61px;transform:rotate(-12deg)}
+.berry-five{right:1.5%;top:55px;width:105px;transform:rotate(11deg)}
+.planner-header .title-stack{position:absolute;z-index:3;left:17%;right:17%;top:28px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.planner-header .ribbon{position:relative;width:100%;max-width:none;border:0;background:transparent;border-radius:0;box-shadow:none;padding:0;height:107px;display:grid;place-items:center}
+.planner-header .ribbon-shape{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.planner-header .ribbon h1{position:relative;z-index:1;color:#8e3929;font-family:"Comic Sans MS","Trebuchet MS",cursive;font-size:clamp(27px,4vw,43px);font-weight:800;letter-spacing:1.8px;transform:rotate(-1deg);text-shadow:1px 1px 0 #ffd3c7}
+.planner-header .month-controls{margin-top:3px;gap:14px}
+.planner-header .month-controls h2{min-width:96px;font-size:17px;font-family:"Comic Sans MS","Trebuchet MS",cursive}
+.planner-header .arrow{background:#fff0e9;border:2px solid #a64a37;box-shadow:2px 2px 0 #f9c4b7}
+.planner-header .eyebrow{margin-top:6px;margin-bottom:0;font-size:12px;letter-spacing:1px;text-transform:lowercase;color:#a95b4c;font-family:"Comic Sans MS","Trebuchet MS",cursive}
+@media(max-width:700px){
+  .planner-header{height:168px;min-height:168px;margin:0 -2px 10px}
+  .planner-header .title-stack{left:13%;right:13%;top:25px;gap:0}
+  .planner-header .ribbon{height:76px}
+  .planner-header .ribbon h1{font-size:clamp(20px,5vw,29px);letter-spacing:.4px}
+  .planner-header .month-controls{margin-top:0;gap:7px}
+  .planner-header .month-controls h2{font-size:13px;min-width:65px}
+  .planner-header .arrow{width:26px;height:26px;font-size:20px;line-height:18px}
+  .planner-header .eyebrow{font-size:10px;letter-spacing:0;margin-top:3px}
+  .doodle-berry{filter:none}
+  .berry-one{left:0;top:53px;width:46px;height:58px}
+  .berry-two{left:7%;top:10px;width:57px;height:68px}
+  .berry-three{right:11%;top:5px;width:42px;height:50px}
+  .berry-four{right:8%;top:74px;width:39px;height:48px}
+  .berry-five{right:0;top:43px;width:53px;height:64px}
+}
+@media(max-width:410px){
+  .planner-header .title-stack{left:11%;right:11%}
+  .berry-two{left:4%;width:50px}
+  .berry-three{right:7%}
+  .berry-five{right:-3%;width:44px}
+}
