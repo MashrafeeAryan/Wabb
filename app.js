@@ -1,5 +1,16 @@
 "use strict";
 const STORAGE_KEY = "wabb-habits-v1";
+const SUPABASE_URL = "https://dhhgglfutxwhrzkjzyhd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_RJK3-RNUC_nk_kwFPUQP7w_OzWsEYRw";
+const cloud = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
+let activeUser = null;
+let accountReady = false;
+let cloudSaving = false;
+let cloudDirty = false;
+let cloudRevision = 0;
+let lastSavedRevision = 0;
+let refreshTimer;
+let saveTimer;
 const defaultHabits = [
   { id: "water", name: "Drink water" },
   { id: "read", name: "Read 20 minutes" },
@@ -14,7 +25,99 @@ function loadState() {
   } catch (error) { console.warn("Could not load saved habits", error); }
   return { habits: defaultHabits.map(h => ({...h})), completions: {}, dayOverrides: {} };
 }
-const state = loadState();
+let state = loadState();
+const guestState = JSON.parse(JSON.stringify(state));
+function normalizeState(value) {
+  if (!value || !Array.isArray(value.habits) || typeof value.completions !== "object" || !value.completions) return null;
+  return {
+    habits: value.habits.filter(h => typeof h?.id === "string" && typeof h?.name === "string").slice(0,8),
+    completions: value.completions,
+    dayOverrides: value.dayOverrides && typeof value.dayOverrides === "object" ? value.dayOverrides : {}
+  };
+}
+function showStatus(message) { document.querySelector("#account-status").textContent = message; }
+function authMessage(message) { document.querySelector("#auth-message").textContent = message; }
+function showUser() {
+  document.querySelector("#account-button").hidden = !!activeUser;
+  document.querySelector("#sign-out-button").hidden = !activeUser;
+  showStatus(activeUser ? "🍓 " + (activeUser.email || "Signed in") + (cloudDirty ? " · Sync pending" : " · Synced") : "Guest mode · saved on this device only");
+}
+async function readCloud() {
+  const {data,error} = await cloud.from("habit_states").select("data").eq("user_id",activeUser.id).maybeSingle();
+  if(error) throw error;
+  return normalizeState(data?.data);
+}
+async function switchAccount(user) {
+  clearTimeout(saveTimer);
+  clearInterval(refreshTimer);
+  accountReady = false; cloudDirty = false; cloudSaving = false; cloudRevision = 0; lastSavedRevision = 0;
+  activeUser = user;
+  if (!user) {
+    state = JSON.parse(JSON.stringify(guestState));
+    accountReady = true; showUser(); renderCalendar(); return;
+  }
+  showStatus("Loading your private habits…");
+  try {
+    const remote = await readCloud();
+    if (activeUser?.id !== user.id) return;
+    if (remote) state = remote;
+    else {
+      const prior = normalizeState(JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"));
+      const importPrior = prior && confirm("Import habits saved in this browser into your new Wabb account? Choose Cancel to start fresh.");
+      state = importPrior ? prior : {habits:defaultHabits.map(h=>({...h})),completions:{},dayOverrides:{}};
+      const {error} = await cloud.from("habit_states").upsert({user_id:user.id,data:state},{onConflict:"user_id",ignoreDuplicates:true});
+      if(error) throw error;
+      const loaded = await readCloud();
+      if (loaded) state = loaded;
+    }
+    accountReady = true; showUser(); renderCalendar();
+    refreshTimer = setInterval(refreshCloud, 20000);
+  } catch(error) {
+    console.error("Wabb cloud load failed",error);
+    showStatus("Cloud loading failed · retry by refreshing");
+    renderCalendar();
+  }
+}
+async function refreshCloud() {
+  if (!accountReady || !activeUser || cloudDirty || cloudSaving || document.querySelector("#habit-dialog").open || document.querySelector("#day-dialog").open) return;
+  const userId = activeUser.id;
+  try {
+    const remote = await readCloud();
+    if (activeUser?.id === userId && !cloudDirty && remote) {state = remote; renderCalendar();}
+  } catch(error) { console.warn("Wabb refresh failed",error); }
+}
+async function syncCloud() {
+  if (!cloud || !activeUser || !accountReady || !cloudDirty || cloudSaving) return;
+  cloudSaving = true;
+  const userId = activeUser.id;
+  const revision = cloudRevision;
+  const snapshot = JSON.parse(JSON.stringify(state));
+  try {
+    const {error} = await cloud.from("habit_states").upsert({user_id:userId,data:snapshot},{onConflict:"user_id"});
+    if (error) throw error;
+    if (activeUser?.id !== userId) return;
+    lastSavedRevision = revision;
+    cloudDirty = cloudRevision !== revision;
+    showUser();
+  } catch(error) {
+    console.warn("Wabb sync failed",error);
+    if (activeUser?.id === userId) showStatus("Sync pending · check your connection");
+  } finally {
+    cloudSaving = false;
+    if (activeUser?.id === userId && cloudDirty && navigator.onLine) saveTimer = setTimeout(syncCloud,2500);
+  }
+}
+async function initAccount() {
+  if (!cloud) {showStatus("Cloud sign-in unavailable · refresh to retry");return;}
+  const {data,error} = await cloud.auth.getUser();
+  if(error && error.name !== "AuthSessionMissingError") console.warn(error);
+  await switchAccount(data?.user || null);
+  cloud.auth.onAuthStateChange((event,session) => {
+    if (event === "SIGNED_IN" && session?.user && session.user.id !== activeUser?.id) void switchAccount(session.user);
+    if (event === "SIGNED_OUT") void switchAccount(null);
+  });
+}
+
 const now = new Date();
 let visibleYear = now.getFullYear();
 let visibleMonth = now.getMonth();
@@ -34,6 +137,7 @@ function habitsForDay(key) {
     .concat(o.added || []);
 }
 function openDayEditor(key) {
+  if (!accountReady) return;
   editingDay = key;
   const [y,m,d] = key.split("-").map(Number);
   document.querySelector("#day-dialog-title").textContent = "Edit " + new Date(y,m-1,d).toLocaleDateString(undefined,{month:"long",day:"numeric"}) + " 🍓";
@@ -64,6 +168,7 @@ function renderDayEditor() {
   });
 }
 function addDayHabit() {
+  if (!accountReady) return;
   const input = document.querySelector("#new-day-habit");
   const name = input.value.trim(); if (!name) return;
   if (habitsForDay(editingDay).length >= 8) { alert("Maximum 8 habits per day."); return; }
@@ -71,14 +176,25 @@ function addDayHabit() {
   input.value = ""; updateDay(); input.focus();
 }
 function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch (error) { console.warn("Could not save habits", error); }
+  if (activeUser) {
+    if (!accountReady) return;
+    cloudRevision++;
+    cloudDirty = true;
+    showUser();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(syncCloud, 350);
+  } else {
+    Object.assign(guestState,JSON.parse(JSON.stringify(state)));
+    try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
+    catch(error) {console.warn("Could not save guest habits",error);}
+  }
 }
 function dateKey(year, month, day) {
   return [year, String(month + 1).padStart(2, "0"), String(day).padStart(2, "0")].join("-");
 }
 function isDone(key, habitId) { return Boolean(state.completions[key]?.[habitId]); }
 function toggle(key, habitId) {
+  if (!accountReady) return;
   if (!state.completions[key]) state.completions[key] = {};
   state.completions[key][habitId] = !isDone(key, habitId);
   if (!Object.values(state.completions[key]).some(Boolean)) delete state.completions[key];
@@ -153,6 +269,7 @@ function renderEditor() {
   });
 }
 function addHabit() {
+  if (!accountReady) return;
   const input = document.querySelector("#new-habit");
   const name = input.value.trim();
   if (!name) return;
@@ -168,10 +285,41 @@ document.querySelector("#add-day-habit").addEventListener("click", addDayHabit);
 document.querySelector("#new-day-habit").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addDayHabit(); } });
 document.querySelector("#close-day-dialog").addEventListener("click", () => dayDialog.close());
 document.querySelector("#done-day-dialog").addEventListener("click", () => dayDialog.close());
+document.querySelector("#account-button").addEventListener("click",()=>document.querySelector("#auth-dialog").showModal());
+document.querySelector("#close-auth").addEventListener("click",()=>document.querySelector("#auth-dialog").close());
+document.querySelector("#sign-out-button").addEventListener("click",async()=>{
+  if (cloudDirty) await syncCloud();
+  if (cloudDirty) {alert("Your changes have not synced. Check your connection before signing out.");return;}
+  const {error} = await cloud.auth.signOut();
+  if(error) alert(error.message);
+});
+document.querySelector("#auth-form").addEventListener("submit", async event=>{
+  event.preventDefault();
+  authMessage("Signing in…");
+  const email=document.querySelector("#auth-email").value.trim();
+  const password=document.querySelector("#auth-password").value;
+  const {error}=await cloud.auth.signInWithPassword({email,password});
+  if(error) authMessage(error.message);
+  else {authMessage("");document.querySelector("#auth-dialog").close();await switchAccount((await cloud.auth.getUser()).data.user);}
+});
+document.querySelector("#sign-up-submit").addEventListener("click",async()=>{
+  const form=document.querySelector("#auth-form");
+  if(!form.reportValidity()) return;
+  const email=document.querySelector("#auth-email").value.trim();
+  const password=document.querySelector("#auth-password").value;
+  authMessage("Creating account…");
+  const {data,error}=await cloud.auth.signUp({email,password,emailRedirectTo:location.origin+location.pathname});
+  if(error) authMessage(error.message);
+  else if(!data.session) authMessage("Account created! Check your email for a confirmation link, then sign in.");
+  else {authMessage("Account created!");document.querySelector("#auth-dialog").close();await switchAccount(data.user);}
+});
+window.addEventListener("online",()=>{if(cloudDirty) void syncCloud();else void refreshCloud();});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden) void refreshCloud();});
 document.querySelector("#previous-month").addEventListener("click", () => changeMonth(-1));
 document.querySelector("#next-month").addEventListener("click", () => changeMonth(1));
 document.querySelector("#today-button").addEventListener("click", () => {visibleYear = now.getFullYear(); visibleMonth = now.getMonth(); renderCalendar();});
-document.querySelector("#manage-button").addEventListener("click", () => {renderEditor(); dialog.showModal();});
+document.querySelector("#manage-button").addEventListener("click", () => {if (!accountReady) return;renderEditor(); dialog.showModal();});
 document.querySelector("#add-habit").addEventListener("click", addHabit);
 document.querySelector("#new-habit").addEventListener("keydown", event => {if (event.key === "Enter") {event.preventDefault(); addHabit();}});
 renderCalendar();
+void initAccount();
