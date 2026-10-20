@@ -34,7 +34,7 @@
         <div><strong id="summary">Ready to bloom?</strong><span id="summary-detail">Tap a circle to check off a habit.</span></div>
         <div class="toolbar-actions">
           <button id="today-button" class="subtle-button" type="button">Today</button>
-          <button id="manage-button" class="primary-button" type="button">✿ Edit habits</button>
+          <button id="manage-button" class="primary-button" type="button">✿ Edit all days</button>
         </div>
       </div>
       <div class="calendar-scroll"><div class="calendar" id="calendar" aria-label="Calendar days"></div></div>
@@ -51,6 +51,16 @@
       <div class="add-habit-row"><input id="new-habit" maxlength="45" placeholder="e.g. Read 20 minutes" autocomplete="off" /><button id="add-habit" type="button" class="primary-button">+ Add</button></div>
       <div class="dialog-actions"><button value="done" class="primary-button" type="submit">Done ♥</button></div>
     </form>
+  </dialog>
+  <dialog id="day-dialog" aria-labelledby="day-dialog-title">
+    <div class="dialog-content">
+      <div class="dialog-top"><h2 id="day-dialog-title">Edit this day 🍓</h2><button id="close-day-dialog" class="close-button" type="button" aria-label="Close">×</button></div>
+      <p>Changes here affect only this date, not your regular habits on other days.</p>
+      <div id="day-habit-editor" class="habit-editor"></div>
+      <label class="new-habit-label" for="new-day-habit">Add a habit for this day</label>
+      <div class="add-habit-row"><input id="new-day-habit" maxlength="45" placeholder="e.g. Submit assignment" autocomplete="off" /><button id="add-day-habit" type="button" class="primary-button">+ Add</button></div>
+      <div class="dialog-actions"><button id="done-day-dialog" class="primary-button" type="button">Done ♥</button></div>
+    </div>
   </dialog>
 </body>
 </html>
