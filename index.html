@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#fceae6" />
   <title>Wabb · Strawberry Habit Calendar</title>
   <link rel="stylesheet" href="./styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
   <script src="./app.js" defer></script>
 </head>
 <body>
@@ -30,6 +31,13 @@
         </div>
       </header>
 
+      <div class="account-bar">
+        <span id="account-status" role="status" aria-live="polite">Checking sign-in…</span>
+        <div class="account-actions">
+          <button id="account-button" class="subtle-button" type="button">Sign in / Sign up</button>
+          <button id="sign-out-button" class="subtle-button" type="button" hidden>Sign out</button>
+        </div>
+      </div>
       <div class="toolbar">
         <div><strong id="summary">Ready to bloom?</strong><span id="summary-detail">Tap a circle to check off a habit.</span></div>
         <div class="toolbar-actions">
@@ -42,6 +50,24 @@
     </section>
     <p class="below">made with love, tiny strawberries & a little determination ♡</p>
   </main>
+  <dialog id="auth-dialog" aria-labelledby="auth-title">
+    <form class="dialog-content" id="auth-form">
+      <div class="dialog-top">
+        <h2 id="auth-title">Welcome to Wabb 🍓</h2>
+        <button type="button" class="close-button" id="close-auth" aria-label="Close">×</button>
+      </div>
+      <p>Sign in to save your habits privately and see them on your phone and laptop.</p>
+      <label class="new-habit-label" for="auth-email">Email</label>
+      <input class="auth-input" id="auth-email" type="email" autocomplete="email" required />
+      <label class="new-habit-label" for="auth-password">Password</label>
+      <input class="auth-input" id="auth-password" type="password" autocomplete="current-password" minlength="6" required />
+      <p id="auth-message" role="status" aria-live="polite"></p>
+      <div class="auth-buttons">
+        <button type="submit" id="sign-in-submit" class="primary-button">Sign in</button>
+        <button type="button" id="sign-up-submit" class="subtle-button">Create account</button>
+      </div>
+    </form>
+  </dialog>
   <dialog id="habit-dialog" aria-labelledby="dialog-title">
     <form method="dialog" id="habit-form" class="dialog-content">
       <div class="dialog-top"><h2 id="dialog-title">Your daily habits 🍓</h2><button class="close-button" value="cancel" aria-label="Close" type="submit">×</button></div>
