@@ -38,7 +38,8 @@ function toggle(key, habitId) {
 function renderCalendar() {
   calendar.replaceChildren();
   const heading = new Date(visibleYear, visibleMonth, 1);
-  document.querySelector("#month-label").textContent = heading.toLocaleDateString(undefined, {month:"long", year:"numeric"});
+  document.querySelector("#month-label").textContent = String(visibleYear);
+  document.querySelector("#month-title").textContent = heading.toLocaleDateString(undefined, {month:"long"});
   const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   weekdays.forEach(name => {
     const el = document.createElement("div");
