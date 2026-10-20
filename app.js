@@ -108,7 +108,7 @@ async function syncCloud() {
   }
 }
 async function initAccount() {
-  if (!cloud) {showStatus("Cloud sign-in unavailable · refresh to retry");return;}
+  if (!cloud) {accountReady = true;showStatus("Cloud sign-in unavailable · changes saved on this device");return;}
   const {data,error} = await cloud.auth.getUser();
   if(error && error.name !== "AuthSessionMissingError") console.warn(error);
   await switchAccount(data?.user || null);
@@ -308,7 +308,7 @@ document.querySelector("#sign-up-submit").addEventListener("click",async()=>{
   const email=document.querySelector("#auth-email").value.trim();
   const password=document.querySelector("#auth-password").value;
   authMessage("Creating account…");
-  const {data,error}=await cloud.auth.signUp({email,password,emailRedirectTo:location.origin+location.pathname});
+  const {data,error}=await cloud.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
   if(error) authMessage(error.message);
   else if(!data.session) authMessage("Account created! Check your email for a confirmation link, then sign in.");
   else {authMessage("Account created!");document.querySelector("#auth-dialog").close();await switchAccount(data.user);}
