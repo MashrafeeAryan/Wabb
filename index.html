@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#fceae6" />
+  <title>Wabb · Strawberry Habit Calendar</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <section class="planner" aria-label="Monthly habit tracker">
+      <div class="sprinkles" aria-hidden="true"></div>
+      <header class="planner-header">
+        <div class="berries" aria-hidden="true">
+          <svg viewBox="0 0 115 106"><path d="M42 28C4 8 5 64 29 87s52 4 57-29C91 28 70 22 56 30" fill="#ef746e" stroke="#9c3c2b" stroke-width="3"/><path d="M47 29C34 9 47 3 53 22 65 3 72 11 61 28c26-11 29 5 4 10-8 19-15 10-15-2-21 14-31 1-12-8-25 0-22-16 9 1Z" fill="#d4cc69" stroke="#9c3c2b" stroke-width="3"/><g fill="#9c3c2b"><ellipse cx="31" cy="48" rx="2" ry="4" transform="rotate(-20 31 48)"/><ellipse cx="57" cy="55" rx="2" ry="4"/><ellipse cx="71" cy="44" rx="2" ry="4"/><ellipse cx="38" cy="67" rx="2" ry="4"/><ellipse cx="57" cy="76" rx="2" ry="4"/></g></svg>
+        </div>
+        <div class="title-stack">
+          <div class="eyebrow">a little progress every day ♡</div>
+          <div class="ribbon"><h1>my sweet habits</h1></div>
+          <div class="month-controls">
+            <button id="previous-month" class="arrow" type="button" aria-label="Previous month">‹</button>
+            <h2 id="month-label" aria-live="polite"></h2>
+            <button id="next-month" class="arrow" type="button" aria-label="Next month">›</button>
+          </div>
+        </div>
+        <div class="berries berries-right" aria-hidden="true">
+          <svg viewBox="0 0 115 106"><path d="M42 28C4 8 5 64 29 87s52 4 57-29C91 28 70 22 56 30" fill="#ef746e" stroke="#9c3c2b" stroke-width="3"/><path d="M47 29C34 9 47 3 53 22 65 3 72 11 61 28c26-11 29 5 4 10-8 19-15 10-15-2-21 14-31 1-12-8-25 0-22-16 9 1Z" fill="#d4cc69" stroke="#9c3c2b" stroke-width="3"/><g fill="#9c3c2b"><ellipse cx="31" cy="48" rx="2" ry="4"/><ellipse cx="57" cy="55" rx="2" ry="4"/><ellipse cx="71" cy="44" rx="2" ry="4"/><ellipse cx="38" cy="67" rx="2" ry="4"/><ellipse cx="57" cy="76" rx="2" ry="4"/></g></svg>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <div><strong id="summary">Ready to bloom?</strong><span id="summary-detail">Tap a circle to check off a habit.</span></div>
+        <div class="toolbar-actions">
+          <button id="today-button" class="subtle-button" type="button">Today</button>
+          <button id="manage-button" class="primary-button" type="button">✿ Edit habits</button>
+        </div>
+      </div>
+      <div class="calendar-scroll"><div class="calendar" id="calendar" aria-label="Calendar days"></div></div>
+      <footer class="planner-footer"><span>🍓 small steps are still steps</span><span id="habit-count"></span></footer>
+    </section>
+    <p class="below">made with love, tiny strawberries & a little determination ♡</p>
+  </main>
+  <dialog id="habit-dialog" aria-labelledby="dialog-title">
+    <form method="dialog" id="habit-form" class="dialog-content">
+      <div class="dialog-top"><h2 id="dialog-title">Your daily habits 🍓</h2><button class="close-button" value="cancel" aria-label="Close" type="submit">×</button></div>
+      <p>These habits appear on every day of your calendar. You can check them off separately each day.</p>
+      <div id="habit-editor" class="habit-editor"></div>
+      <label class="new-habit-label" for="new-habit">Add a new habit</label>
+      <div class="add-habit-row"><input id="new-habit" maxlength="45" placeholder="e.g. Read 20 minutes" autocomplete="off" /><button id="add-habit" type="button" class="primary-button">+ Add</button></div>
+      <div class="dialog-actions"><button value="done" class="primary-button" type="submit">Done ♥</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
