@@ -1,33 +1,52 @@
 # Wabb 🍓
 
-A sweet, strawberry-themed monthly habit tracker.
+A strawberry-themed habit calendar with private accounts and cross-device syncing.
 
 ## Features
-- Full Sunday–Saturday monthly calendar, including five- and six-week months
-- Pink date circles and daily habits with clickable completion circles
-- Navigate between months or jump to the current month
-- Add, rename, and remove daily habits (up to eight for readability)
-- Completion percentage for the displayed month
-- Automatically saves habits and checked circles in your browser using localStorage
-- Responsive layout; scroll the calendar horizontally on smaller screens
-- Accessible button labels and keyboard interactions
 
-## Run it
+- Monthly calendar with pink day circles and green completed days
+- Recurring daily habits and separate per-day additions, edits, and removals
+- Email/password accounts through Supabase Authentication
+- Private saved progress synced between phone and laptop when signed in
+- Guest mode saved locally to this browser
+- Optional first-login import of existing habits saved on the device
+- Automatic cloud updates and periodic refresh while signed in
 
-Open `index.html` in your browser. No installation, build tools, or accounts needed.
+## Hosting
 
-Alternatively, serve the directory with `python3 -m http.server 8000` and visit `http://localhost:8000`.
+The static website is published through GitHub Actions on GitHub Pages:
+https://mashrafeearyan.github.io/Wabb/
 
-## Storage
+The backend is a managed Supabase project named **Wabb**. Its `public.habit_states` table uses row-level security so every signed-in user can access only their own row. The website contains **only the public Supabase publishable key**, never a database password or service-role key.
 
-Data is saved **locally in each browser**. It will persist through refreshes, but it does not sync between devices or browsers. Clearing site storage deletes the saved data.
+## One-time Supabase authentication setting
 
-## Deploy on GitHub Pages
+To ensure that new-account confirmation emails return to Wabb, configure this in the Supabase dashboard for project **Wabb**:
 
-In your repository, go to **Settings → Pages**, select **Deploy from a branch**, choose `main` and `/(root)`, then save. Your site will be available at your GitHub Pages URL once GitHub publishes it.
+**Authentication → URL Configuration**
+- **Site URL:** `https://mashrafeearyan.github.io/Wabb/`
+- **Redirect URLs:** add `https://mashrafeearyan.github.io/Wabb/`
 
-## Files
+This is a Supabase Auth setting, **not** a database operation. The connected integration currently cannot change Auth URL Configuration.
 
-- `index.html`: page structure and habit editor
-- `styles.css`: strawberry-themed layout
-- `app.js`: calendar logic, habit management, and local saving
+Email/password sign-up may require email confirmation before first sign-in. Supabase's built-in email delivery has rate limits; production-scale public sign-ups may need a custom SMTP provider.
+
+## Using Wabb
+
+1. Open the website and select **Sign in / Sign up**.
+2. Create an account with an email and password; confirm the email if prompted.
+3. Sign in using the same account on your phone and laptop.
+4. Your recurring habits, day-specific edits and checkmarks are saved to your account.
+
+If your browser already has old Wabb habits, the first login to a *new, empty* Wabb cloud account offers to import them. Import only habits that belong to you. An existing account's cloud data is loaded rather than overwritten by this device's guest data.
+
+When signed out, Wabb stays usable in local guest mode, but guest changes don't sync. Cloud saving requires a connection; the account bar indicates pending sync.
+
+## Development
+
+Wabb is plain HTML, CSS, and JavaScript. There is no local build step. To run locally, serve the directory with `python3 -m http.server 8000` (email confirmation redirects require an allowlisted local URL if testing sign-up locally).
+
+- `index.html`: calendar, editors, and account interface
+- `styles.css`: strawberry-themed design
+- `app.js`: habits, account management, and Supabase sync
+- `.github/workflows/deploy.yml`: GitHub Pages deployment
