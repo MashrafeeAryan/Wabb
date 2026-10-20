@@ -56,7 +56,8 @@ function renderCalendar() {
     const key = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
     const isToday = key === dateKey(now.getFullYear(), now.getMonth(), now.getDate());
     const cell = document.createElement("div");
-    cell.className = "day" + (inMonth ? "" : " outside") + (isToday ? " today" : "");
+    const dayComplete = inMonth && state.habits.length > 0 && state.habits.every(habit => isDone(key, habit.id));
+    cell.className = "day" + (inMonth ? "" : " outside") + (isToday ? " today" : "") + (dayComplete ? " complete" : "");
     const bubble = document.createElement("span");
     bubble.className = "date-bubble"; bubble.textContent = String(date.getDate());
     cell.append(bubble);
