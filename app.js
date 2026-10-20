@@ -56,6 +56,8 @@ async function switchAccount(user) {
     state = JSON.parse(JSON.stringify(guestState));
     accountReady = true; showUser(); renderCalendar(); return;
   }
+  state = {habits:[],completions:{},dayOverrides:{}};
+  renderCalendar();
   showStatus("Loading your private habits…");
   try {
     const remote = await readCloud();
